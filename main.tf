@@ -1,25 +1,25 @@
 resource "azurerm_resource_group" "main" {
-  name     = data.azurerm_resource_group.main.name
-  location = data.azurerm_resource_group.main.location
+  name     = "${var.prefix}-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "main" {
-  name                = data.azurerm_virtual_network.main.name
+  name                = "${var.prefix}-network"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
 }
 
 resource "azurerm_subnet" "internal" {
-  name                 = data.azurerm_subnet.internal.name
+  name                 = "internal"
   resource_group_name  = azurerm_resource_group.main.name
   virtual_network_name = azurerm_virtual_network.main.name
-  address_prefixes     = [data.azurerm_subnet.internal.address_prefix]
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 
 resource "azurerm_public_ip" "main" {
-  name                = data.azurerm_public_ip.main.name
+  name                = "${var.prefix}-public-ip"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   allocation_method   = "Dynamic"
@@ -31,7 +31,7 @@ resource "azurerm_public_ip" "main" {
 }
 
 resource "azurerm_network_interface" "main" {
-  name                = data.azurerm_network_interface.main.name
+  name                = "${var.prefix}-nic"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
 

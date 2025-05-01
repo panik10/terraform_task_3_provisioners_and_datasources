@@ -24,6 +24,6 @@ data "azurerm_virtual_machine" "main" {
 }
 
 data "azurerm_public_ip" "main" {
-  name                = "acceptanceTestPublicIp1"
+  name                = "${var.prefix}-public-ip"
   resource_group_name = data.azurerm_virtual_machine.main.resource_group_name
 }
