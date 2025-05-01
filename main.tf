@@ -52,10 +52,10 @@ resource "azurerm_virtual_machine" "main" {
   vm_size               = "Standard_B1s"
 
   # Uncomment this line to delete the OS disk automatically when deleting the VM
-   delete_os_disk_on_termination = true
+  delete_os_disk_on_termination = true
 
   # Uncomment this line to delete the data disks automatically when deleting the VM
-   delete_data_disks_on_termination = true
+  delete_data_disks_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"
@@ -83,28 +83,28 @@ resource "azurerm_virtual_machine" "main" {
 
   provisioner "remote-exec" {
     connection {
-      type = "ssh"
-      host = data.azurerm_public_ip.main.ip_address
-      user = var.host_username
+      type     = "ssh"
+      host     = data.azurerm_public_ip.main.ip_address
+      user     = var.host_username
       password = var.host_pass
     }
 
     inline = [
-     "sudo apt-get update -y",
-     "sudo apt-get install -y nginx"
-   ]
+      "sudo apt-get update -y",
+      "sudo apt-get install -y nginx"
+    ]
 
   }
 
   provisioner "file" {
     connection {
-      type = "ssh"
-      host = data.azurerm_public_ip.main.ip_address
-      user = var.host_username
+      type     = "ssh"
+      host     = data.azurerm_public_ip.main.ip_address
+      user     = var.host_username
       password = var.host_pass
     }
 
-    source = "index.html"
+    source      = "index.html"
     destination = "/var/www/html/index.html"
   }
 
