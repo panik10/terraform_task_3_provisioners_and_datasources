@@ -1,67 +1,53 @@
-terraform {
-  required_providers {
-    azurerm = {
-      source = "hashicorp/azurerm"
-      version = "3.105.0"
-    }
-  }
-}
-
-provider "azurerm" {
-  features {}
-}
-
-
-resource "azurerm_resource_group" "example" {
-  name     = "${var.resource_group_name}"
-  location = "West Europe"
+resource "azurerm_resource_group" "main" {
+  name     = data.azurerm_resource_group.main.name
+  location = data.azurerm_resource_group.main.location
 }
 
 resource "azurerm_virtual_network" "main" {
-  name                = "${var.prefix}-network"
+  name                = data.azurerm_virtual_network.main.name
   address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
 }
 
 resource "azurerm_subnet" "internal" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.example.name
+  name                 = data.azurerm_subnet.internal.name
+  resource_group_name  = azurerm_resource_group.main.name
   virtual_network_name = azurerm_virtual_network.main.name
-  address_prefixes     = ["10.0.2.0/24"]
+  address_prefixes     = [data.azurerm_subnet.internal.address_prefix]
 }
 
 
-resource "azurerm_public_ip" "example" {
-  name                = "acceptanceTestPublicIp1"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
+resource "azurerm_public_ip" "main" {
+  name                = data.azurerm_public_ip.main.name
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
   allocation_method   = "Dynamic"
   sku                 = "Basic"
 
   tags = {
-    environment = "Staging"
+    environment = var.environment
   }
 }
 
 resource "azurerm_network_interface" "main" {
-  name                = "${var.prefix}-nic"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
+  name                = data.azurerm_network_interface.main.name
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
 
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = azurerm_subnet.internal.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.example.id
+    public_ip_address_id          = azurerm_public_ip.main.id
   }
 }
 
 
 resource "azurerm_virtual_machine" "main" {
   name                  = "${var.prefix}-vm"
-  location              = azurerm_resource_group.example.location
-  resource_group_name   = azurerm_resource_group.example.name
+  location              = azurerm_resource_group.main.location
+  resource_group_name   = azurerm_resource_group.main.name
   network_interface_ids = [azurerm_network_interface.main.id]
   vm_size               = "Standard_B1s"
 
@@ -92,13 +78,13 @@ resource "azurerm_virtual_machine" "main" {
     disable_password_authentication = false
   }
   tags = {
-    environment = "staging"
+    environment = var.environment
   }
 
   provisioner "remote-exec" {
     connection {
       type = "ssh"
-      host = azurerm_public_ip.example.ip_address
+      host = data.azurerm_public_ip.main.ip_address
       user = var.host_username
       password = var.host_pass
     }
@@ -113,7 +99,7 @@ resource "azurerm_virtual_machine" "main" {
   provisioner "file" {
     connection {
       type = "ssh"
-      host = azurerm_public_ip.example.ip_address
+      host = data.azurerm_public_ip.main.ip_address
       user = var.host_username
       password = var.host_pass
     }

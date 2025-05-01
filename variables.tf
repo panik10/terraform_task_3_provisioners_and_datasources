@@ -20,3 +20,7 @@ variable "host_name" {
     type = string
     default = "hostname"
 }
+
+variable "environment" {
+  default = "staging"
+}
